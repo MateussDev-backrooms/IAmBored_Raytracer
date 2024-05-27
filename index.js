@@ -8,7 +8,7 @@ let screen = [];
 let scr_rays = [];
 let cam_origin = { x: 0, y: 0, z: -128 };
 
-let _sphere_origin = { x: 0, y: 0, z: 51};
+let _sphere_origin = { x: 64, y: 0, z: 25};
 let _sphere_radius = 50;
 
 function init() {
@@ -20,11 +20,18 @@ function init() {
 
     render();
 }
+let c_x = 0, c_y = 0
 function update() {
-    
+    if(c_y < canvas.width) {
+        c_x += 1;
+        if(c_x >= canvas.width) {
+            c_x = 0;
+            c_y += 1;
+        }
+        raytracePixel(c_x, c_y)
+    }
 }
 
-let c_x = 0, c_y = 0
 function render() {
     for (let x = 0; x < canvas.width; x++) {
         for (let y = 0; y < canvas.height; y++) {
@@ -54,7 +61,7 @@ function raytracePixel(x, y) {
 
     let norm_dir = vec_normalize(scr_rays[x][y]);
     if(sphereIntersect(cam_origin, norm_dir, _sphere_origin, _sphere_radius)) {
-        screen[x][y] = { r: 0, g: 0, b: 256 }
+        screen[x][y] = { r: 256, g: 256, b: 256 }
     } else {
         screen[x][y] = { r: 0, g: 0, b: 0}
     }
@@ -64,17 +71,21 @@ function raytracePixel(x, y) {
 }
 
 function sphereIntersect(origin, dir, sphere_pos, sphere_r) {
-    let e = vec_sub(origin, sphere_pos)
-    //t*t(dx*dx + dy*dy + dz*dz) + t*(2*ex*dx + 2*ey*dy + 2*ez*dz) + ex*ex + ey*ey + ez*ez - r*r = 0
-    let a=1
-    let b=2*e.x*dir.x + 2*e.y*dir.y + 2*e.z*dir.z
-    let c = vec_length(e)*vec_length(e) - sphere_r*sphere_r
+    let rayOffset = vec_sub(origin, sphere_pos)
+    let a = vec_dot(dir, dir);
+    let b = 2 * vec_dot(rayOffset, dir);
+    let c = vec_dot(rayOffset, rayOffset) - sphere_r * sphere_r;
 
-    let disc = b*b - 4*a*c
-    if(disc < 0) {
-        return false;
+    let D = b*b - 4*a*c;
+
+    if(D >= 0) {
+        let dst = (-b - Math.sqrt(D) / (2*a))
+
+        if(dst >= 0) {
+            return true
+        }
     }
-    return true
+    return false
 }
 
 //util functions
@@ -105,7 +116,7 @@ function vec_sub(vec1, vec2) {
 }
 
 function vec_length(vec) {
-    return Math.sqrt(vec.x * vec.x + vec.y * vec.y + vec.z * vec.z);
+    return Math.sqrt(vec.x*vec.x + vec.y*vec.y + vec.z*vec.z);
 }
 
 function vec_scale(vec, k) {
@@ -118,4 +129,17 @@ function vec_normalize(vec) {
 
 function vec_dot(vec1, vec2) {
     return (vec1.x * vec2.x) + (vec1.y * vec2.y) + (vec1.z * vec2.z)
+}
+
+function redrawScene() {
+    c_y = 0;
+    c_x = 0
+    for (let x = 0; x < canvas.width; x++) {
+        screen[x] = [];
+        scr_rays[x] = [];
+        for (let y = 0; y < canvas.height; y++) {
+            scr_rays[x][y] = {x:0, y:0, z:0}
+            screen[x][y] = { r: 0, g: 0, b: 0 }
+        }
+    }
 }
