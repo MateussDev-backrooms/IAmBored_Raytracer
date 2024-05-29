@@ -1,2 +1,2 @@
 # The raytracering
-![image](https://github.com/MateussDev-backrooms/IAmBored_Raytracer/assets/101806154/8d43d38f-6e25-48e6-bfaa-5fb26cf8b614)
+![image](https://github.com/MateussDev-backrooms/IAmBored_Raytracer/assets/101806154/59c36f77-95ea-493b-b563-f7ee75c40968)
