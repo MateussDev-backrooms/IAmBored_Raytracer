@@ -4,6 +4,7 @@ let canvas;
 let ctx;
 let t = 0;
 let bounce_cnt = 3;
+let rays_per_pixel = 16;
 
 //classes
 class vector3 {
@@ -51,17 +52,43 @@ class hit {
 }
 
 function init() {
-    setInterval(update, 10);
+    setInterval(update, 0.1
+
+    );
     canvas = document.getElementById("canvas");
     ctx = canvas.getContext("2d");
 
     // camera_origin = new vector3(canvas.width/2, canvas.height/2, -128)
     prepareScreen();
     populateScene(64);
-    raytraceScene();
+    // raytraceScene();
     render();
 }
-function update() { }
+
+let c_x = 0;
+let c_y = 0;
+function update() {
+    let _pixel_pos = vec_add(
+        new vector3(c_x, c_y, 0),
+        new vector3(-canvas.width / 2, -canvas.height / 2, 0)
+    );
+    let _ray_dir = vec_norm(vec_add(vec_neg(camera_origin), _pixel_pos));
+    // console.log(_pixel_pos, _ray_dir, )
+    let totalCol = {r:0,g:0,b:0}
+    for(let it=0; it<rays_per_pixel; it++) {
+        totalCol = col_add(totalCol, traceRay(camera_origin, _ray_dir))
+    }
+    screen[c_x][c_y] = col_div(totalCol, rays_per_pixel)
+    
+    c_x++;
+    if(c_x >= canvas.width) {
+        c_x = 0;
+        c_y++;
+        if(c_y >= canvas.height) {
+            c_y = 0;
+        }
+    }
+}
 
 function render() {
     //paint to screen
@@ -72,6 +99,8 @@ function render() {
             ctx.fillRect(x, y, 1, 1);
         }
     }
+
+    requestAnimationFrame(render)
 }
 
 //operations with vectors
@@ -153,6 +182,13 @@ function col_scl(col1, k) {
         b:clamp(col1.b*k, 0, 256)
     }
 }
+function col_div(col1, k) {
+    return {
+        r:clamp(col1.r/k, 0, 256),
+        g:clamp(col1.g/k, 0, 256),
+        b:clamp(col1.b/k, 0, 256)
+    }
+}
 
 function col_to_rel_col(col) {
     return {
@@ -175,7 +211,7 @@ function prepareScreen() {
     for (let x = 0; x < canvas.width; x++) {
         screen[x] = [];
         for (let y = 0; y < canvas.height; y++) {
-            screen[x][y] = { r: 0, g: 0, b: 0 };
+            screen[x][y] = { r: 256, g: 0, b: 256 };
         }
     }
 }
@@ -248,13 +284,7 @@ function raytraceScene() {
 
     for (let x = 0; x < canvas.width; x++) {
         for (let y = 0; y < canvas.height; y++) {
-            let _pixel_pos = vec_add(
-                new vector3(x, y, 0),
-                new vector3(-canvas.width / 2, -canvas.height / 2, 0)
-            );
-            let _ray_dir = vec_norm(vec_add(vec_neg(camera_origin), _pixel_pos));
-            // console.log(_pixel_pos, _ray_dir, )
-            screen[x][y] = traceRay(camera_origin, _ray_dir)
+            
         }
     }
 }
